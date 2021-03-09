@@ -4,7 +4,14 @@ from pydantic import BaseModel
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-router = APIRouter()
+from ..dependencies import get_token_header
+
+router = APIRouter(    
+    prefix="/api",
+    tags=["api"],
+    dependencies=[Depends(get_token_header)],
+    responses={404: {"description": "Not found"}},
+)
 
 
 engine = create_engine(
