@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends
+import os
+from dependencies import get_token_header
 from typing import Optional
 from pydantic import BaseModel
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from ..dependencies import get_token_header
 
-router = APIRouter(    
+
+router = APIRouter(
     prefix="/api",
     tags=["api"],
     dependencies=[Depends(get_token_header)],

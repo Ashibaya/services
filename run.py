@@ -1,14 +1,13 @@
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, requests, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from routers import admin, api
 from starlette.middleware.cors import CORSMiddleware
-from .dependencies import get_token_header, get_query_token
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from dependencies import get_token_header, get_query_token
 import uvicorn
 
-app = FastAPI(dependencies = [Depends(get_query_token)])
-
-oath2_scheme = OAuth2PasswordBearer(tokenUrl = 'token')
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,13 +17,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post('/token')
-async def token(form_data: OAuth2PasswordRequestForm = Depends()):
-    return {'access_token': form_data.username + 'token'}
+templates = Jinja2Templates(directory="app/templates")
+
+
+def render_template(templateurl, request, obj):
+    return templates.TemplateResponse(templateurl, {"request": request, "objects": obj})
+
 
 @app.get('/')
-async def index(token: str = Depends(oath2_scheme)):
-    return {'the_token': token}
+async def hello():
+    return {"greating": "Hello"}
+
+
+@app.post('/auth')
+async def get_token():
+    return {"x-token": "fake-super-secret-token"}
+
+
+@app.get('/auth', response_class=HTMLResponse)
+async def show_auth_page(request: Request):
+    return templates.TemplateResponse("login_page.html", {"request": request})
 
 app.mount("/app/static", StaticFiles(directory="app/static"), name="static")
 
